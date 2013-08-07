@@ -1,4 +1,8 @@
-Returns the element at the specified index in the list
+#Get the first character in a string
+def getFirstCharacter(string):
+    return string[0]
+
+#Returns the element at the specified index in the list
 def getElement(iset,index):
     lst = list(iset)
     return lst[index]
@@ -26,17 +30,23 @@ def cartesian_product(set1,set2):
     return result
     
 
-Represents a table in a database
+#Represents a table in a database
 class Table:
     def __init__(self,name,headings,table=set()):
         self.__table = table
         self.__ncols = len(headings)
         self.__headings = headings
         self.__seq = [x for x in range(len(self.__headings))]
+        self.__name = name  
         self.attr = dict(zip(self.__headings,self.__seq))
 
+    #Returns the underlying set structure in the table
     def getTable(self):
         return self.__table
+
+    #Returns the name of the table
+    def getName(self):
+        return self.__name
 
     #Returns the names of the columns 
     def getHeadings(self):
@@ -86,7 +96,8 @@ class Table:
         result = tab.union(tab1)
         result = Table(name,self.__headings,result)
         return result
-        
+
+
 
 #Represents the Simple_RDBMS system
 class Database:
@@ -99,7 +110,21 @@ class Database:
         self.__tables[name] = tab
 
     #Return the table in the database with the specified name
-    def get(self,name):
+    def getTable(self,name):
         return self.__tables[name]
+
+    #Get the index of the specified attribute in the table
+    def getAttr(self,table_name,attr_name):
+        return self.getTable(table_name).attr[attr_name]
+    
+    #Run a select query on the table
+    def select_query(self,table_name,cond,heading_lst,name="select_query"):
+        return self.getTable(table_name).select(cond,heading_lst,name)
+
+    #Returns a list of all the tables in the database
+    def getTableNames(self):
+        return self.__tables.keys()
+    
+    
 
     
