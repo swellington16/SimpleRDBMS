@@ -9,6 +9,7 @@ db.insert_query("students",(620024789,"Sean","Wellington"))
 db.insert_query("students",(620045678,"Crystal","Francis"))
 db.insert_query("students",(620089945,"Denar","Palmer"))
 db.insert_query("students",(620034569,"Brian","Long"))
+db.insert_query("lecturers",(45039456,"Daniel","Coore"))
 
 #Shortening the attributes
 sid = db.getAttr("students","sid")
@@ -27,4 +28,7 @@ t3 = db.select_query("students",q3,[],"query_3")
 
 #Creating a view
 db.createView("sample_view",QUERY_VIEW,"query_3")
+
+#Doing a full join
+j1 = db.full_join_query("students","lecturers","join_query_1")
 
