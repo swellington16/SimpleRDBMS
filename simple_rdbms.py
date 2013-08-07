@@ -100,13 +100,15 @@ class Table:
 #Represents a view that would be found in standard RDBMS's
 class View:
     def __init__(self,name,table):
-        self.__table = table
+        self.__table = table #The table or query this view references
         self.__name = name
 
     def display(self):
         self.__table.display()
 
-
+#Constants for views
+TABLE_VIEW = 0
+QUERY_VIEW = 1
 
 #Represents the Simple_RDBMS system
 class Database:
@@ -119,6 +121,25 @@ class Database:
     def createTable(self,name,headings):
         tab = Table(name,headings)
         self.__tables[name] = tab
+
+
+    #Create a new view that references a table or query with table_name
+    def createView(self,name,table_type,table_name):
+        if table_type == TABLE_VIEW:
+            if self.hasTable(table_name):
+                view = View(name,self.getTable(table_name))
+                self.__views[name] = view
+            else:
+                print "Table does not exist: ",table_name
+        elif table_type == QUERY_VIEW:
+            if self.hasQuery(table_name):
+                view = View(name,self.getQuery(table_name))
+                self.__views[name] = view
+            else:
+                print "Query does not exist: ",table_name
+        else:
+            print "Invalid flag"
+            
 
     #Determines if database has the specified table
     def hasTable(self,table_name):
@@ -136,6 +157,19 @@ class Database:
     def getTable(self,name):
         if self.hasTable(name):
             return self.__tables[name]
+        return -1
+
+    #Return the query in the database with the specified name
+    def getQuery(self,name):
+        if self.hasQuery(name):
+            return self.__queries[name]
+        return -1
+
+
+    #Return the view in the database with the specified name
+    def getView(self,name):
+        if self.hasView(name):
+            return self.__views[name]
         return -1
 
     #Get the index of the specified attribute in the table
@@ -178,4 +212,18 @@ class Database:
             print "Table dropped: ",table_name
         else:
             print "Table does not exist: ",table_name
+
+
+    #Drops the view with the specified name
+    def dropView(self,view_name):
+        if not self.getView(view_name) == -1:
+            self.__views.pop(view_name)
+            print "View dropped: ",view_name
+        else:
+            print "View does not exist: ",view_name
+
+
+    #Display the specified view's table/query
+    def displayView(self,view_name):
+        self.__views[view_name].display()
         
