@@ -97,34 +97,78 @@ class Table:
         result = Table(name,self.__headings,result)
         return result
 
+#Represents a view that would be found in standard RDBMS's
+class View:
+    def __init__(self,name,table):
+        self.__table = table
+        self.__name = name
+
+    def display(self):
+        self.__table.display()
+
 
 
 #Represents the Simple_RDBMS system
 class Database:
     def __init__(self,tables=dict()):
-        self.__tables = tables 
+        self.__tables = tables
+        self.__queries = dict()
+        self.__views = dict()
 
     #Create a new table
     def createTable(self,name,headings):
         tab = Table(name,headings)
         self.__tables[name] = tab
 
+    #Determines if database has the specified table
+    def hasTable(self,table_name):
+        return self.__tables.has_key(table_name)
+
+    #Determines if database has the specified query
+    def hasQuery(self,query_name):
+        return self.__queries.has_key(query_name)
+
+    #Determines if database has the specified view
+    def hasView(self,view_name):
+        return self.__views.has_key(view_name)
+
     #Return the table in the database with the specified name
     def getTable(self,name):
-        return self.__tables[name]
+        if self.hasTable(name):
+            return self.__tables[name]
+        return -1
 
     #Get the index of the specified attribute in the table
     def getAttr(self,table_name,attr_name):
-        return self.getTable(table_name).attr[attr_name]
+        if not self.getTable(table_name) == -1:
+            return self.getTable(table_name).attr[attr_name]
+        return "Table does not exist: ",table_name
     
     #Run a select query on the table
     def select_query(self,table_name,cond,heading_lst,name="select_query"):
-        return self.getTable(table_name).select(cond,heading_lst,name)
+        if not self.getTable(table_name) == -1:
+            tab = self.getTable(table_name).select(cond,heading_lst,name)
+            self.__queries[name] = tab
+            return tab
+        return "Table does not exist: ",table_name
 
-    #Returns a list of all the tables in the database
+    #Returns a list of the names of all the tables in the database
     def getTableNames(self):
         return self.__tables.keys()
-    
-    
 
+    #Returns a list of the names of all the queries in the database
+    def getQueryNames(self):
+        return self.__queries.keys()
+
+    #Returns a list of the names of all the views in the database
+    def getViewNames(self):
+        return self.__views.keys()
     
+    #Drops the table with the specified name
+    def dropTable(self,table_name):
+        if not self.getTable(table_name) == -1:
+            self.__tables.pop(table_name)
+            print "Table dropped: ",table_name
+        else:
+            print "Table does not exist: ",table_name
+        
