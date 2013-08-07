@@ -1,3 +1,5 @@
+import itertools
+
 #Get the first character in a string
 def getFirstCharacter(string):
     return string[0]
@@ -22,11 +24,9 @@ def hasCommon(lst,lst1):
     
 #Returns the Cartesian Product of two sets
 def cartesian_product(set1,set2):
-    lst1,lst2 = list(set1),list(set2)
-    result = [x + y for x in lst1 for y in lst2 if hasCommon(x,y)]
-    for x in result:
-        removeDups(x)
-    result = set([tuple(x) for x in result])
+    lst1, lst2 = list(set1), list(set2)
+    res = [(x,y) for x in lst1 for y in lst2]
+    result = set(res)
     return result
     
 
@@ -41,7 +41,7 @@ class Table:
         self.attr = dict(zip(self.__headings,self.__seq))
 
     #Returns the underlying set structure in the table
-    def getTable(self):
+    def getInnerTable(self):
         return self.__table
 
     #Returns the name of the table
@@ -52,6 +52,10 @@ class Table:
     def getHeadings(self):
         return self.__headings
 
+    #Returns the number of columns in the table
+    def getNumCols(self):
+        return self.__ncols
+
     #Allows one to view the table
     def display(self):
         lst = list(self.__table)
@@ -60,9 +64,11 @@ class Table:
     #Inserts a record in the table
     def insert(self,row):
         if not len(row) == self.__ncols:
-            print "Tuple is not of the correct length"
+            print "Record is not of the correct length"
         else:
-            self.__table.add(row)
+            lst = list(self.__table)
+            lst.append(row)
+            self.__table = set(lst)
 
     
     def delete(self,cond):
@@ -81,16 +87,18 @@ class Table:
         sel = Table(name,cols,set(result))
         return sel
 
-    #Sets up and "runs" a simple join
-    def join(self,t,name="join_query"):
-        tab,tab1 = self.__table,t.getTable()
+    #Sets up and "runs" a simple full join
+    def full_join(self,t,name="full_join_query"):
+        tab,tab1 = self.__table,t.getInnerTable()
+        print tab
+        print tab1
         headings = self.__headings + t.getHeadings()
         result = cartesian_product(tab,tab1)
         result = Table(name,headings,result)
         return result
 
     def union(self,t,name="union_query"):
-        tab,tab1 = self.__table,t.getTable()
+        tab,tab1 = self.__table,t.getInnerTable()
         if not tab.getHeadings() == tab1.getHeadings():
             return "Cannot union these tables"
         result = tab.union(tab1)
@@ -119,8 +127,11 @@ class Database:
 
     #Create a new table
     def createTable(self,name,headings):
-        tab = Table(name,headings)
-        self.__tables[name] = tab
+        if not self.hasTable(name):
+            tab = Table(name,headings)
+            self.__tables[name] = tab
+        else:
+            print "A table with that name already exists."
 
 
     #Create a new view that references a table or query with table_name
@@ -193,6 +204,18 @@ class Database:
         else:
             print "Table does not exist: ",table_name
 
+
+    #Run a full join query on two tables in the database
+    def full_join_query(self,table1_name,table2_name,name):
+        if not self.getTable(table1_name) == -1:
+            if not self.getTable(table2_name) == -1:
+                join_tab = self.getTable(table1_name).full_join(self.getTable(table2_name))
+                self.__queries[name] = join_tab
+                return join_tab
+            return "Table does not exist: ",table2_name
+        return "Table does not exist: ",table1_name
+        
+
     #Returns a list of the names of all the tables in the database
     def getTableNames(self):
         return self.__tables.keys()
@@ -222,7 +245,13 @@ class Database:
         else:
             print "View does not exist: ",view_name
 
-
+    #Display the table with the specified name
+    def displayTable(self,table_name):
+        if not self.getTable(table_name) == -1:
+            self.getTable(table_name).display()
+        else:
+            print "Table does not exist: ",table_name
+        
     #Display the specified view's table/query
     def displayView(self,view_name):
         self.__views[view_name].display()
