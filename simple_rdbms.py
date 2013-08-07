@@ -152,6 +152,13 @@ class Database:
             return tab
         return "Table does not exist: ",table_name
 
+    #Run an insert query on the table
+    def insert_query(self,table_name,row):
+        if not self.getTable(table_name) == -1:
+            self.getTable(table_name).insert(row)
+        else:
+            print "Table does not exist: ",table_name
+
     #Returns a list of the names of all the tables in the database
     def getTableNames(self):
         return self.__tables.keys()
