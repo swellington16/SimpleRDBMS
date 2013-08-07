@@ -25,4 +25,6 @@ t1 = db.select_query("students",q1,["sid","l_name"],"query_1")
 t2 = db.select_query("students",q2,["sid"],"query_2")
 t3 = db.select_query("students",q3,[],"query_3")  
 
+#Creating a view
+db.createView("sample_view",QUERY_VIEW,"query_3")
 
