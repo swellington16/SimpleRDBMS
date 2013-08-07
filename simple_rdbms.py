@@ -90,10 +90,11 @@ class Table:
     #Sets up and "runs" a simple full join
     def full_join(self,t,name="full_join_query"):
         tab,tab1 = self.__table,t.getInnerTable()
-        print tab
-        print tab1
         headings = self.__headings + t.getHeadings()
         result = cartesian_product(tab,tab1)
+        res_lst = list(result)
+        res_lst = [x[0] + x[1] for x in res_lst]
+        result = set(res_lst)
         result = Table(name,headings,result)
         return result
 
