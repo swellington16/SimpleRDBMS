@@ -1,4 +1,5 @@
 import itertools
+import pickle
 
 #Get the first character in a string
 def getFirstCharacter(string):
@@ -298,4 +299,11 @@ class SimpleRDBMS:
             print "Database dropped: ",db_name
         else:
             print "Database does not exist: ",db_name
+
+    #Saves the database management system object 
+    def save(self,file_name):
+        path = "C:/Users/SWELL/Desktop/"
+        path = path + file_name
+        pickle.dump(self, open(path,"wb"))
+                    
         
