@@ -1,6 +1,9 @@
 from simple_rdbms import *
 
-db = Database() #The database
+sdb = SimpleRDBMS() #Singleton RDBMS 
+
+sdb.createDB("UWI_DB") #Creating a new database
+db = sdb.getDatabase("UWI_DB")
 
 #students table
 db.createTable("students",["sid","f_name","l_name"])
