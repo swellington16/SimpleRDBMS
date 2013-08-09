@@ -119,12 +119,17 @@ class View:
 TABLE_VIEW = 0
 QUERY_VIEW = 1
 
-#Represents the Simple_RDBMS system
+#Represents a database in the Simple_RDBMS system
 class Database:
-    def __init__(self,tables=dict()):
+    def __init__(self,name,tables=dict()):
+        self.__name = name
         self.__tables = tables
         self.__queries = dict()
         self.__views = dict()
+
+    #Returns the name of the database
+    def getName(self):
+        return self.__name
 
     #Create a new table
     def createTable(self,name,headings):
@@ -186,13 +191,13 @@ class Database:
 
     #Get the index of the specified attribute in the table
     def getAttr(self,table_name,attr_name):
-        if not self.getTable(table_name) == -1:
+        if self.hasTable(table_name):
             return self.getTable(table_name).attr[attr_name]
         return "Table does not exist: ",table_name
     
     #Run a select query on the table
     def select_query(self,table_name,cond,heading_lst,name="select_query"):
-        if not self.getTable(table_name) == -1:
+        if self.hasTable(table_name):
             tab = self.getTable(table_name).select(cond,heading_lst,name)
             self.__queries[name] = tab
             return tab
@@ -200,7 +205,7 @@ class Database:
 
     #Run an insert query on the table
     def insert_query(self,table_name,row):
-        if not self.getTable(table_name) == -1:
+        if self.hasTable(table_name):
             self.getTable(table_name).insert(row)
         else:
             print "Table does not exist: ",table_name
@@ -208,8 +213,8 @@ class Database:
 
     #Run a full join query on two tables in the database
     def full_join_query(self,table1_name,table2_name,name):
-        if not self.getTable(table1_name) == -1:
-            if not self.getTable(table2_name) == -1:
+        if self.hasTable(table1_name):
+            if self.hasTable(table2_name):
                 join_tab = self.getTable(table1_name).full_join(self.getTable(table2_name))
                 self.__queries[name] = join_tab
                 return join_tab
@@ -231,7 +236,7 @@ class Database:
     
     #Drops the table with the specified name
     def dropTable(self,table_name):
-        if not self.getTable(table_name) == -1:
+        if self.hasTable(table_name):
             self.__tables.pop(table_name)
             print "Table dropped: ",table_name
         else:
@@ -240,7 +245,7 @@ class Database:
 
     #Drops the view with the specified name
     def dropView(self,view_name):
-        if not self.getView(view_name) == -1:
+        if self.hasView(view_name):
             self.__views.pop(view_name)
             print "View dropped: ",view_name
         else:
@@ -248,7 +253,7 @@ class Database:
 
     #Display the table with the specified name
     def displayTable(self,table_name):
-        if not self.getTable(table_name) == -1:
+        if self.hasTable(table_name):
             self.getTable(table_name).display()
         else:
             print "Table does not exist: ",table_name
@@ -256,4 +261,41 @@ class Database:
     #Display the specified view's table/query
     def displayView(self,view_name):
         self.__views[view_name].display()
+
+
+#Represents the system itself
+class SimpleRDBMS:
+    def __init__(self):
+        self.__databases = dict()
+
+    #Determines if the system has the specified database
+    def hasDB(self,db_name):
+        return self.__databases.has_key(db_name)
+
+    #Returns the database with the specified 
+    def getDatabase(self,db_name):
+        if self.hasDB(db_name):
+            return self.__databases[db_name]
+        return -1
+
+    #Returns a list of the names of all databases in the system
+    def getDBNames(self):
+        return self.__databases.keys()
+
+    #Creates a new database
+    def createDB(self,db_name):
+        if not self.hasDB(db_name):
+            db = Database(db_name)
+            self.__databases[db_name] = db
+        else:
+            print "A database with that name already exists."
+        
+
+    #Drops the specified database
+    def dropDB(self,db_name):
+        if not self.hasDB(db_name):
+            self.__databases.pop(db_name)
+            print "Database dropped: ",db_name
+        else:
+            print "Database does not exist: ",db_name
         
