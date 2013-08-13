@@ -10,6 +10,16 @@ def getElement(iset,index):
     lst = list(iset)
     return lst[index]
 
+#Determines if an iterable has duplicate elements
+def hasDups(lst):
+    spotDup = False
+    lst = list(lst)
+    for x in lst:
+        if lst.count(x) > 1:
+            spotDup = True
+    return spotDup
+            
+
 #Removes duplicate entries in the list
 def removeDups(lst):
     lst = list(lst)
@@ -17,6 +27,7 @@ def removeDups(lst):
         if lst.count(x) > 1:
             x = ''
     lst = filter(lambda x: not x == '',lst)
+    return lst
 
 #Determines if two lists have an intersection
 def hasCommon(lst,lst1):
@@ -99,10 +110,27 @@ class Table:
         result = Table(name,headings,result)
         return result
 
+
+    #Sets up and "runs" a simple inner join
+    def inner_join(self,t,name="inner_join_query"):
+        isEligible, final_lst = False,[]
+        lst1, lst2 = list(self.__table), list(t.getInnerTable())
+        headings = self.__headings + t.getHeadings()
+        result = cartesian_product(lst1,lst2)
+        res_lst = list(result)
+        res_lst = [x[0] + x[1] for x in res_lst]
+        for row in res_lst:
+            if hasDups(row):
+                final_lst.append(row)
+        result = set(final_lst)
+        result = Table(name,headings,result)
+        return result
+            
+    #Sets up and "runs" a union on two tables
     def union(self,t,name="union_query"):
         tab,tab1 = self.__table,t.getInnerTable()
-        if not tab.getHeadings() == tab1.getHeadings():
-            return "Cannot union these tables"
+        if not self.getHeadings() == t.getHeadings():
+            return Table(name,self.__headings,set())
         result = tab.union(tab1)
         result = Table(name,self.__headings,result)
         return result
@@ -219,6 +247,27 @@ class Database:
                 join_tab = self.getTable(table1_name).full_join(self.getTable(table2_name))
                 self.__queries[name] = join_tab
                 return join_tab
+            return "Table does not exist: ",table2_name
+        return "Table does not exist: ",table1_name
+
+
+    #Run an inner join query on two tables in the database
+    def inner_join_query(self,table1_name,table2_name,name):
+        if self.hasTable(table1_name):
+            if self.hasTable(table2_name):
+                join_tab = self.getTable(table1_name).inner_join(self.getTable(table2_name))
+                self.__queries[name] = join_tab
+                return join_tab
+            return "Table does not exist: ",table2_name
+        return "Table does not exist: ",table1_name
+
+    #Run a union query on two tables in the database
+    def union_query(self,table1_name,table2_name,name):
+        if self.hasTable(table1_name):
+            if self.hasTable(table2_name):
+                union_tab = self.getTable(table1_name).union(self.getTable(table2_name))
+                self.__queries[name] = union_tab
+                return union_tab
             return "Table does not exist: ",table2_name
         return "Table does not exist: ",table1_name
         
