@@ -6,13 +6,14 @@ sdb.createDB("UWI_DB") #Creating a new database
 db = sdb.getDatabase("UWI_DB")
 
 #students table
-db.createTable("students",["sid","f_name","l_name"])
+db.createTable("students",["sid","f_name","l_name","lid"])
 db.createTable("lecturers",["lid","f_name","l_name"])
-db.insert_query("students",(620024789,"Sean","Wellington"))
-db.insert_query("students",(620045678,"Crystal","Francis"))
-db.insert_query("students",(620089945,"Denar","Palmer"))
-db.insert_query("students",(620034569,"Brian","Long"))
+db.insert_query("students",(620024789,"Sean","Wellington",45039456))
+db.insert_query("students",(620045678,"Crystal","Francis",242235245))
+db.insert_query("students",(620089945,"Denar","Palmer",542323323))
+db.insert_query("students",(620034569,"Brian","Long",3543545))
 db.insert_query("lecturers",(45039456,"Daniel","Coore"))
+db.insert_query("lecturers",(3543545,"Daniel","Fokum"))
 
 #Shortening the attributes
 sid = db.getAttr("students","sid")
@@ -34,4 +35,11 @@ db.createView("sample_view",QUERY_VIEW,"query_3")
 
 #Doing a full join
 j1 = db.full_join_query("students","lecturers","join_query_1")
+
+#Doing an inner join
+j2 = db.inner_join_query("students","lecturers","join_query_2")
+
+
+#Doing a union
+u1 = db.union_query("students","lecturers","union_query_1")
 
