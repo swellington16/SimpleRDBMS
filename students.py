@@ -10,7 +10,7 @@ db.createTable("students",[("sid",int),("f_name",str),("l_name",str),("lid",int)
 db.createTable("lecturers",[("lid",int),("f_name",str),("l_name",str)])
 
 
-db.insert_query("students",(620024789,"Sean","Wellington",'45039456'))
+db.insert_query("students",(620034567,"Sean","Wellington",'45039456'))
 db.insert_query("students",(620045678,"Crystal","Francis",242235245))
 db.insert_query("students",(620089945,"Denar","Palmer",542323323))
 db.insert_query("students",(620034569,"Brian","Long",3543545))
@@ -23,7 +23,7 @@ f_name = db.getAttr("students","f_name")
 l_name = db.getAttr("students","l_name")
 
 #The query conditions
-q1 = lambda x: x[sid] == 620024789
+q1 = lambda x: x[sid] == 620034567
 q2 = lambda x: x[f_name] > "C"
 q3 = lambda x: getFirstCharacter(x[l_name]) == "W"
 
