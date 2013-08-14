@@ -6,9 +6,11 @@ sdb.createDB("UWI_DB") #Creating a new database
 db = sdb.getDatabase("UWI_DB")
 
 #students table
-db.createTable("students",["sid","f_name","l_name","lid"])
-db.createTable("lecturers",["lid","f_name","l_name"])
-db.insert_query("students",(620024789,"Sean","Wellington",45039456))
+db.createTable("students",[("sid",int),("f_name",str),("l_name",str),("lid",int)])
+db.createTable("lecturers",[("lid",int),("f_name",str),("l_name",str)])
+
+
+db.insert_query("students",(620024789,"Sean","Wellington",'45039456'))
 db.insert_query("students",(620045678,"Crystal","Francis",242235245))
 db.insert_query("students",(620089945,"Denar","Palmer",542323323))
 db.insert_query("students",(620034569,"Brian","Long",3543545))
