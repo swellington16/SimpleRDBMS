@@ -40,6 +40,25 @@ def cartesian_product(set1,set2):
     res = [(x,y) for x in lst1 for y in lst2]
     result = set(res)
     return result
+
+
+#Represents attributes of records in a table
+class Attribute:
+    def __init__(self,data_type,data):
+        self.__data_type = data_type
+        self.__data = data
+
+    def getType(self):
+        return self.__data_type
+
+    def getData(self):
+        return self.__data
+
+    def setType(self,data_type):
+        self.__data_type = data_type
+
+    def setData(self,data):
+        self.__data = data
     
 
 #Represents a table in a database
@@ -48,9 +67,10 @@ class Table:
         self.__table = table
         self.__ncols = len(headings)
         self.__headings = headings
+        self.__headings_ref = [x[0] for x in headings]
         self.__seq = [x for x in range(len(self.__headings))]
         self.__name = name  
-        self.attr = dict(zip(self.__headings,self.__seq))
+        self.attr = dict(zip(self.__headings_ref,self.__seq))
 
     #Returns the underlying set structure in the table
     def getInnerTable(self):
@@ -75,12 +95,22 @@ class Table:
 
     #Inserts a record in the table
     def insert(self,row):
+        isEligible, new_row, mismatches = True, [], []
         if not len(row) == self.__ncols:
             print "Record is not of the correct length"
         else:
             lst = list(self.__table)
-            lst.append(row)
-            self.__table = set(lst)
+            for i in range(len(row)):
+                if not type(row[i]) == self.__headings[i][1]:
+                    isEligible = False
+                    mismatches.append(row[i])
+                new_row.append(row[i])
+            if isEligible:
+                lst.append(tuple(new_row))
+                self.__table = set(lst)
+            else:
+                print "Type mismatch of data: ",mismatches
+                print "Table: ",self.__name
 
     
     def delete(self,cond):
@@ -311,6 +341,10 @@ class Database:
     #Display the specified view's table/query
     def displayView(self,view_name):
         self.__views[view_name].display()
+
+    #Shows the attributes of the table
+    def displayTableHeadings(self,table_name):
+        print self.getTable(table_name).getHeadings()
 
 
 #Represents the system itself
