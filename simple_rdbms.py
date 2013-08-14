@@ -1,5 +1,6 @@
 import itertools
 import pickle
+import sys
 
 #Get the first character in a string
 def getFirstCharacter(string):
@@ -71,6 +72,7 @@ class Table:
         self.__seq = [x for x in range(len(self.__headings))]
         self.__name = name  
         self.attr = dict(zip(self.__headings_ref,self.__seq))
+        self.__nrows = 0
 
     #Returns the underlying set structure in the table
     def getInnerTable(self):
@@ -87,6 +89,10 @@ class Table:
     #Returns the number of columns in the table
     def getNumCols(self):
         return self.__ncols
+
+    #Returns the number of rows in the table
+    def getNumRows(self):
+        return self.__nrows
 
     #Allows one to view the table
     def display(self):
@@ -108,6 +114,7 @@ class Table:
             if isEligible:
                 lst.append(tuple(new_row))
                 self.__table = set(lst)
+                self.__nrows += 1
             else:
                 print "Type mismatch of data: ",mismatches
                 print "Table: ",self.__name
@@ -190,6 +197,7 @@ class Database:
     def getName(self):
         return self.__name
 
+
     #Create a new table
     def createTable(self,name,headings):
         if not self.hasTable(name):
@@ -266,6 +274,9 @@ class Database:
     def insert_query(self,table_name,row):
         if self.hasTable(table_name):
             self.getTable(table_name).insert(row)
+            print "Row inserted in table: ",table_name
+            print "Number of rows in table: ",self.getTableRows(table_name)
+            print "\n"
         else:
             print "Table does not exist: ",table_name
 
@@ -300,7 +311,12 @@ class Database:
                 return union_tab
             return "Table does not exist: ",table2_name
         return "Table does not exist: ",table1_name
-        
+
+    #Returns the number of rows in the specified table
+    def getTableRows(self,table_name):
+        if self.hasTable(table_name):
+            return self.getTable(table_name).getNumRows()
+        return -1    
 
     #Returns a list of the names of all the tables in the database
     def getTableNames(self):
@@ -313,6 +329,31 @@ class Database:
     #Returns a list of the names of all the views in the database
     def getViewNames(self):
         return self.__views.keys()
+
+    #Returns the size of the specified table in bytes
+    def getTableSize(self,table_name):
+        if self.hasTable(table_name):
+            return sys.getsizeof(self.getTable(table_name))
+        return 0
+
+    #Returns the size of the specified query in bytes
+    def getQuerySize(self,query_name):
+        if self.hasQuery(query_name):
+            return sys.getsizeof(self.getQuery(query_name))
+        return 0
+
+    #Returns the size of the specified view in bytes
+    def getViewSize(self,view_name):
+        if self.hasView(view_name):
+            return sys.getsizeof(self.getView(view_name))
+        return 0
+    
+    #Returns the total size of the current database
+    def getTotalSize(self):
+        table_sizes = [self.getTableSize(tab) for tab in self.getTableNames()]
+        query_sizes = [self.getQuerySize(query) for query in self.getQueryNames()]
+        view_sizes = [self.getViewSize(view) for view in self.getViewNames()]
+        return sum(table_sizes) + sum(query_sizes) + sum(view_sizes)
     
     #Drops the table with the specified name
     def dropTable(self,table_name):
@@ -344,7 +385,10 @@ class Database:
 
     #Shows the attributes of the table
     def displayTableHeadings(self,table_name):
-        print self.getTable(table_name).getHeadings()
+        if self.hasTable(table_name):
+            print self.getTable(table_name).getHeadings()
+        else:
+            print "Table does not exist: ",table_name
 
 
 #Represents the system itself
@@ -365,6 +409,18 @@ class SimpleRDBMS:
     #Returns a list of the names of all databases in the system
     def getDBNames(self):
         return self.__databases.keys()
+
+    #Returns the size of the specified database in bytes
+    def getDBSize(self,db_name):
+        if self.hasDB(db_name):
+            return self.__databases[db_name].getTotalSize()
+        return 0
+
+    #Returns the total size of the database management system
+    def getTotalSize(self):
+        db_sizes = [self.getDBSize(db) for db in self.getDBNames()]
+        return sum(db_sizes)
+        
 
     #Creates a new database
     def createDB(self,db_name):
