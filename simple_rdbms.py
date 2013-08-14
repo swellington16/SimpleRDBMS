@@ -172,6 +172,25 @@ class Table:
         result = Table(name,self.__headings,result)
         return result
 
+    #Converts the table into simple XML
+    def getXML(self):
+        root = "<dataroot>\n"
+        for row in self.__table:
+            root += "<"+self.__name+">\n"
+            for heading in self.__headings_ref:
+                root += "<"+heading+">"+str(row[self.attr[heading]])+"</"+heading+">\n"
+            root += "</"+self.__name+">\n"
+        root += "</dataroot>"
+        return root
+
+    #Saves the table data to an XML file to be used in Microsoft Access
+    def saveToXML(self):
+        xml = self.getXML()
+        file_name = self.__name+".xml"
+        xml_file = open(file_name,"w")
+        xml_file.write(xml)
+        xml_file.close()
+
 #Represents a view that would be found in standard RDBMS's
 class View:
     def __init__(self,name,table):
@@ -390,6 +409,8 @@ class Database:
         else:
             print "Table does not exist: ",table_name
 
+    
+
 
 #Represents the system itself
 class SimpleRDBMS:
@@ -439,10 +460,12 @@ class SimpleRDBMS:
         else:
             print "Database does not exist: ",db_name
 
-    #Saves the database management system object 
-    def save(self,file_name):
+    #Saves the database management system object to a P file 
+    def saveToPickle(self,file_name):
         path = "C:/Users/SWELL/Desktop/"
         path = path + file_name
         pickle.dump(self, open(path,"wb"))
                     
+
+    
         
