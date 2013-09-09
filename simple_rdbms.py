@@ -6,6 +6,14 @@ import sys
 def getFirstCharacter(string):
     return string[0]
 
+#Get the last character in a string
+def getLastCharacter(string):
+    return string[len(string)-1]
+
+#Determines if the string has the specified character as its last character
+def hasLastChar(string,char):
+    return getLastCharacter(string) == char
+
 #Returns the element at the specified index in the list
 def getElement(iset,index):
     lst = list(iset)
@@ -69,9 +77,11 @@ class Table:
         self.__ncols = len(headings)
         self.__headings = headings
         self.__headings_ref = [x[0] for x in headings]
+        self.__headings_types = [x[1] for x in headings]
         self.__seq = [x for x in range(len(self.__headings))]
         self.__name = name  
         self.attr = dict(zip(self.__headings_ref,self.__seq))
+        self.types = dict(zip(self.__headings_ref,self.__headings_types))
         self.__nrows = 0
 
     #Returns the underlying set structure in the table
@@ -82,9 +92,28 @@ class Table:
     def getName(self):
         return self.__name
 
-    #Returns the names of the columns 
+    #Returns the headings of the columns and their types
     def getHeadings(self):
         return self.__headings
+
+
+    #Returns the names of the column headings only
+    def getHeadingsRef(self):
+        return self.__headings_ref
+
+
+    #Returns the types of the column headings only
+    def getHeadingTypes(self):
+        return self.__headings_types
+
+    
+    #Determines if the current table has the given column heading
+    def hasHeading(self,heading):
+        return heading in self.__headings_ref
+
+    #Returns the type of a given column
+    def getHeadingType(self,heading):
+        return self.types[heading]
 
     #Returns the number of columns in the table
     def getNumCols(self):
@@ -97,7 +126,20 @@ class Table:
     #Allows one to view the table
     def display(self):
         lst = list(self.__table)
-        print lst
+        heading_block, num_headings, underline = "|", 0, ""
+        for heading in self.getHeadingsRef():
+            heading_block = heading_block + str(heading) + "|"
+            num_headings += 1
+        print heading_block
+        for i in range(num_headings):
+            underline += "======="
+        print underline
+        for row in lst:
+            block = "|"
+            for val in row:
+                block = block + str(val) + "|"
+            print block
+        print "\n"
 
     #Inserts a record in the table
     def insert(self,row):
@@ -107,7 +149,10 @@ class Table:
         else:
             lst = list(self.__table)
             for i in range(len(row)):
-                if not type(row[i]) == self.__headings[i][1]:
+                if not type(row[i]) == self.__headings_types[i]:
+                    print "Expected type of value: ",self.__headings_types[i]
+                    print "Value with type mismatch: ",row[i]
+                    print "Actual type of value: ",type(row[i])
                     isEligible = False
                     mismatches.append(row[i])
                 new_row.append(row[i])
@@ -119,20 +164,23 @@ class Table:
                 print "Type mismatch of data: ",mismatches
                 print "Table: ",self.__name
 
-    
+    #Sets up and "runs" a delete query
     def delete(self,cond):
         lst = list(self.__table)
         lst1 = filter(cond,lst)
         s, s1 = set(lst),set(lst1)
         result = list(s.difference(s1))
+        self.__nrows = len(result)
         self.__table = set(result)
 
     #Sets up and "runs" a select query
-    def select(self,cond,cols,name="select_query"):
+    def select(self,cols,cond=None,name="select_query"):
         lst = list(self.__table)
         result = filter(cond,lst)
         if not cols == []:
             result = [tuple([x[self.attr[r]] for r in cols]) for x in result]
+        col_types = [self.types[x] for x in cols]
+        cols = zip(cols,col_types)
         sel = Table(name,cols,set(result))
         return sel
 
@@ -280,11 +328,19 @@ class Database:
         if self.hasTable(table_name):
             return self.getTable(table_name).attr[attr_name]
         return "Table does not exist: ",table_name
+
+    #Gets the data type of the specified table heading
+    def getTableHeadingType(self,table_name,attr_name):
+        if self.hasTable(table_name):
+            if self.getTable(table_name).hasHeading(attr_name):
+                return self.getTable(table_name).getHeadingType(attr_name)
+            return "Heading ",attr_name," does not exist in table: ",table_name
+        return "Table does not exist: ",table_name
     
     #Run a select query on the table
-    def select_query(self,table_name,cond,heading_lst,name="select_query"):
+    def select_query(self,table_name,heading_lst,cond=None,name="select_query"):
         if self.hasTable(table_name):
-            tab = self.getTable(table_name).select(cond,heading_lst,name)
+            tab = self.getTable(table_name).select(heading_lst,cond,name)
             self.__queries[name] = tab
             return tab
         return "Table does not exist: ",table_name
@@ -295,6 +351,18 @@ class Database:
             self.getTable(table_name).insert(row)
             print "Row inserted in table: ",table_name
             print "Number of rows in table: ",self.getTableRows(table_name)
+            print "\n"
+        else:
+            print "Table does not exist: ",table_name
+
+    #Run a delete query on the table
+    def delete_query(self,table_name,cond):
+        if self.hasTable(table_name):
+            init_rows = self.getTableRows(table_name)
+            self.getTable(table_name).delete(cond)
+            new_rows = self.getTableRows(table_name)
+            del_rows = init_rows - new_rows
+            print "Deleted this # of rows: ",del_rows
             print "\n"
         else:
             print "Table does not exist: ",table_name
@@ -409,6 +477,13 @@ class Database:
         else:
             print "Table does not exist: ",table_name
 
+    #Returns the list of the names of the columns in the specified table
+    def getColumnNames(self,table_name):
+        if self.hasTable(table_name):
+            return self.getTable(table_name).getHeadingsRef()
+        else:
+            return []
+
     
 
 
@@ -424,7 +499,9 @@ class SimpleRDBMS:
     #Returns the database with the specified 
     def getDatabase(self,db_name):
         if self.hasDB(db_name):
+            print "Changed to database: ",db_name
             return self.__databases[db_name]
+        print "Database does not exist: ",db_name
         return -1
 
     #Returns a list of the names of all databases in the system
@@ -466,6 +543,7 @@ class SimpleRDBMS:
         path = path + file_name
         pickle.dump(self, open(path,"wb"))
                     
+
 
     
         
