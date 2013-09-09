@@ -28,9 +28,9 @@ q2 = lambda x: x[f_name] > "C"
 q3 = lambda x: getFirstCharacter(x[l_name]) == "W"
 
 #The execution of the queries and their result tables
-t1 = db.select_query("students",q1,["sid","l_name"],"query_1")
-t2 = db.select_query("students",q2,["sid"],"query_2")
-t3 = db.select_query("students",q3,[],"query_3")  
+t1 = db.select_query("students",["sid","l_name"],q1,"query_1")
+t2 = db.select_query("students",["sid"],q2,"query_2")
+t3 = db.select_query("students",[],q3,"query_3")  
 
 #Creating a view
 db.createView("sample_view",QUERY_VIEW,"query_3")
