@@ -1,5 +1,11 @@
 from simple_rdbms import *
 
+'''
+This is a script to test some of the major parts of the system.
+This is not meant to be used for serious work using this system.
+If you wish to do something halfway serious with this, use the interpeter provided.
+'''
+
 sdb = SimpleRDBMS() #Singleton RDBMS 
 
 sdb.createDB("UWI_DB") #Creating a new database
