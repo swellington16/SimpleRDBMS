@@ -4,7 +4,7 @@ from simple_rdbms import *
 
 #-------------terminals-------------
 NAME = "[a-zA-Z0-9_\*]+"
-ENTRY = "[a-zA-Z0-9_\"\*]+"
+ENTRY = "[a-zA-Z0-9_\'\*]+"
 TYPE = "(INT|STR|FLOAT|LONG)"
 FILENAME = "([a-zA-Z]:)*[a-zA-Z0-9_/-]+(\.[a-zA-Z]+)"
 SDB_FILENAME = "([a-zA-Z]:)*[a-zA-Z0-9_/-]+(\.sdb)"
@@ -185,23 +185,23 @@ class Visitor:
             ASTCallStmt(node).accept(self)
         elif not dump_stmt_matcher is None:
             ASTDumpStmt(node).accept(self)
-        elif not create_tab_stmt_matcher is None: 
+        elif not create_tab_stmt_matcher is None:
             ASTCreateTabStmt(node).accept(self)
-        elif not create_view_stmt_matcher is None: 
+        elif not create_view_stmt_matcher is None:
             ASTCreateViewStmt(node).accept(self)
-        elif not insert_tab_stmt_matcher is None: 
+        elif not insert_tab_stmt_matcher is None:
             ASTInsertTabStmt(node).accept(self)
-        elif not select_tab_stmt_matcher is None: 
+        elif not select_tab_stmt_matcher is None:
             ASTSelectTabStmt(node).accept(self)
         elif not delete_stmt_matcher is None:
             ASTDeleteStmt(node).accept(self)
-        elif not join_stmt_matcher is None: 
+        elif not join_stmt_matcher is None:
             ASTJoinStmt(node).accept(self)
-        elif not show_stmt_matcher is None: 
+        elif not show_stmt_matcher is None:
             ASTShowObjStmt(node).accept(self)
-        elif not db_obj_stmt_matcher is None: 
+        elif not db_obj_stmt_matcher is None:
             ASTDBObjStmt(node).accept(self)
-        elif not exit_matcher is None: 
+        elif not exit_matcher is None:
             ASTExitStmt(node).accept(self)
         else:
             print "Syntax error"
@@ -210,7 +210,7 @@ class Visitor:
     def visitCallStmt(self,node):
         exp = node.getExp()
         filename = exp[1]
-        print "File name: ",filename 
+        print "File name: ",filename
         try:
             code_file = open(filename)
             code_string = code_file.read()
@@ -253,13 +253,20 @@ class Visitor:
     def visitInsertTabStmt(self,node):
         exp = node.getExp()
         name, values = exp[2], exp[3:]
+        headingTypes = self.db.getTable(name).getHeadingTypes()
         for i in range(len(values)):
-            if values[i][0] == "i":
-                values[i] = int(values[i][1:])
-            elif values[i][0] == "f":
-                values[i] = float(values[i][1:])
-            elif values[i][0] == "l":
-                values[i] = long(values[i][1:])
+            isString = hasFirstChar(values[i],"\'") and hasLastChar(values[i],"\'")
+            if not isString:
+                if headingTypes[i] == float:
+                    values[i] = float(values[i])
+                elif headingTypes[i] == int:
+                    values[i] = int(values[i])
+                elif headingTypes[i] == long:
+                    values[i] = long(values[i])
+            else:
+                size = len(values[i])-1
+                values[i] = values[i][1:size]
+                        
         values = tuple(values)
         
         print "Name: ",name
@@ -362,6 +369,7 @@ class Visitor:
         if obj == "DATABASE":
             print self.sdb.getDBNames()
         elif obj == "TABLE":
+            print "Current database: ",self.db.getName()
             print self.db.getTableNames()
         elif obj == "VIEW":
             print self.db.getViewNames()
@@ -410,11 +418,10 @@ class BackupCreator:
 #Interpreter program
 def interpreter(visitor):
     visitor.changeStatus()
-    code_input = raw_input(">>>  ")
+    code_input = raw_input(">>> ")
     ASTProgram(code_input).accept(visitor)
 
     visitor.preserve(code_input)
     
     if visitor.getStatus() == 1:
         interpreter(visitor)
-        
