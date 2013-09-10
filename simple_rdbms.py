@@ -10,6 +10,10 @@ def getFirstCharacter(string):
 def getLastCharacter(string):
     return string[len(string)-1]
 
+#Determines if the string has the specified character as its first character
+def hasFirstChar(string,char):
+    return getFirstCharacter(string) == char
+
 #Determines if the string has the specified character as its last character
 def hasLastChar(string,char):
     return getLastCharacter(string) == char
@@ -79,7 +83,7 @@ class Table:
         self.__headings_ref = [x[0] for x in headings]
         self.__headings_types = [x[1] for x in headings]
         self.__seq = [x for x in range(len(self.__headings))]
-        self.__name = name  
+        self.__name = name
         self.attr = dict(zip(self.__headings_ref,self.__seq))
         self.types = dict(zip(self.__headings_ref,self.__headings_types))
         self.__nrows = 0
@@ -254,11 +258,11 @@ QUERY_VIEW = 1
 
 #Represents a database in the Simple_RDBMS system
 class Database:
-    def __init__(self,name,tables=dict()):
+    def __init__(self,name,tables=dict(),queries=dict(),views=dict()):
         self.__name = name
         self.__tables = tables
-        self.__queries = dict()
-        self.__views = dict()
+        self.__queries = queries
+        self.__views = views
 
     #Returns the name of the database
     def getName(self):
@@ -403,7 +407,7 @@ class Database:
     def getTableRows(self,table_name):
         if self.hasTable(table_name):
             return self.getTable(table_name).getNumRows()
-        return -1    
+        return -1
 
     #Returns a list of the names of all the tables in the database
     def getTableNames(self):
@@ -496,7 +500,7 @@ class SimpleRDBMS:
     def hasDB(self,db_name):
         return self.__databases.has_key(db_name)
 
-    #Returns the database with the specified 
+    #Returns the database with the specified
     def getDatabase(self,db_name):
         if self.hasDB(db_name):
             print "Changed to database: ",db_name
@@ -523,7 +527,7 @@ class SimpleRDBMS:
     #Creates a new database
     def createDB(self,db_name):
         if not self.hasDB(db_name):
-            db = Database(db_name)
+            db = Database(db_name,dict(),dict(),dict())
             self.__databases[db_name] = db
         else:
             print "A database with that name already exists."
@@ -537,13 +541,8 @@ class SimpleRDBMS:
         else:
             print "Database does not exist: ",db_name
 
-    #Saves the database management system object to a P file 
+    #Saves the database management system object to a P file
     def saveToPickle(self,file_name):
         path = "C:/Users/SWELL/Desktop/"
         path = path + file_name
         pickle.dump(self, open(path,"wb"))
-                    
-
-
-    
-        
