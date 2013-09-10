@@ -1,0 +1,15 @@
+Tasks to be accomplished for this system: 
+
+4.) Implement the arithmetic functions: SUM, COUNT, AVERAGE, STDEV and PRODUCT.
+5.) Implement the intersect query.
+6.) Implement indexing. 
+7.) Add a page detailing the interpreter language (SDB), its keywords and its syntax.
+8.) Test the JOIN queries in the interpreter and add them to the Queries wiki page.
+9.) Add the classes and methods in the interpreter module to the "Programming Reference" page.
+11.) Create a text editor for SDB files.
+
+
+Job-hunting tasks to be accomplished
+
+1.) SEND A RESUME TO jlee@jlsolutionsltd.com FOR A POTENTIAL JOB.
+2.) CONTACT ARTUVIC via COORE OR MANSINGH FOR A POTENTIAL JOB (located in the call centre building on campus).
