@@ -1,4 +1,4 @@
-Simple_RDBMS
+SimpleRDBMS
 ============
 
 A simple RDBMS created in Python.
