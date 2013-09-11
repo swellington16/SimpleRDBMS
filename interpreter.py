@@ -254,6 +254,17 @@ class Visitor:
         exp = node.getExp()
         name, values = exp[2], exp[3:]
         headingTypes = self.db.getTable(name).getHeadingTypes()
+
+        #Accounting for spaces in string values
+        for i in range(len(values)-1):
+            isPartialFirst = hasFirstChar(values[i],"\'") and not hasLastChar(values[i],"\'")
+            isPartialLast = hasLastChar(values[i+1],"\'") and not hasFirstChar(values[i+1],"\'")
+            if isPartialFirst and isPartialLast:
+                values[i] = values[i] + " " + values[i+1]
+                values[i+1] = "\t"
+
+        values = filter(lambda x: not x == "\t",values)
+
         for i in range(len(values)):
             isString = hasFirstChar(values[i],"\'") and hasLastChar(values[i],"\'")
             if not isString:
@@ -285,7 +296,7 @@ class Visitor:
         if not exp[index+2:] == []:
             param1 = exp[index+3]
             cond = exp[index+4]
-            param2 = exp[index+5]
+            param2 = reduce(lambda x,y: x+" "+y,exp[index+5:])
         
             attr1 = self.db.getAttr(tab_name,param1)
             if self.db.getTableHeadingType(tab_name,param1) == int:
@@ -325,7 +336,8 @@ class Visitor:
 
     def visitDeleteStmt(self,node):
         exp = node.getExp()
-        tab_name, param1, cond, param2 = exp[2], exp[4], exp[5], exp[6]
+        tab_name, param1, cond= exp[2], exp[4], exp[5]
+        param2 = reduce(lambda x,y: x+" "+y,exp[6:])
         attr1 = self.db.getAttr(tab_name,param1)
         if self.db.getTableHeadingType(tab_name,param1) == int:
             param2 = int(param2)
