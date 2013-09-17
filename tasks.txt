@@ -4,7 +4,6 @@ Tasks to be accomplished for this system:
 5.) Implement the intersect query.
 6.) Implement indexing. 
 7.) Add a page detailing the interpreter language (SDB), its keywords and its syntax.
-8.) Test the JOIN queries in the interpreter and add them to the Queries wiki page.
 9.) Add the classes and methods in the interpreter module to the "Programming Reference" page.
 11.) Create a text editor for SDB files.
 
