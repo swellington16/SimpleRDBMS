@@ -391,11 +391,14 @@ class Visitor:
 
     def visitJoinStmt(self,node):
         exp = node.getExp()
+        jq = None
         command,tab1,tab2,join_name = exp[0],exp[2],exp[3],exp[4]
         if command == "FULL":
-            return self.db.full_join_query(tab1,tab2,join_name)
+            jq = self.db.full_join_query(tab1,tab2,join_name)
         elif command == "INNER":
-            return self.db.inner_join_query(tab1,tab2,join_name)
+            jq = self.db.inner_join_query(tab1,tab2,join_name)
+        jq.display()
+        return jq
 
 
     def visitDumpStmt(self,node):
