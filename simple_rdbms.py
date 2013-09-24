@@ -188,6 +188,19 @@ class Table:
         sel = Table(name,cols,set(result))
         return sel
 
+    #Sets up and "runs" an update query
+    def update(self,col,value,cond=None,name="update_query"):
+        lst = list(self.__table)
+        result = filter(cond,lst)
+        set1, set2 = set(lst), set(result)
+        res = list(set1.difference(set2))
+        for i in range(len(result)):
+            result[i] = list(result[i])
+            result[i][self.attr[col]] = value
+            result[i] = tuple(result[i])
+        fin = list(res) + result
+        self.__table = set(fin)
+
     #Sets up and "runs" a simple full join
     def full_join(self,t,name="full_join_query"):
         tab,tab1 = self.__table,t.getInnerTable()
@@ -367,6 +380,15 @@ class Database:
             new_rows = self.getTableRows(table_name)
             del_rows = init_rows - new_rows
             print "Deleted this # of rows: ",del_rows
+            print "\n"
+        else:
+            print "Table does not exist: ",table_name
+
+    #Run an update query on the table
+    def update_query(self,table_name,col,value,cond=None):
+        if self.hasTable(table_name):
+            self.getTable(table_name).update(col,value,cond)
+            print "Updated rows successfully"
             print "\n"
         else:
             print "Table does not exist: ",table_name
