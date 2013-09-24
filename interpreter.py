@@ -20,6 +20,9 @@ FROM_OP = "(FROM)"
 WHERE_OP = "(WHERE)"
 INTO_OP = "(INTO)"
 JOIN_OP = "(FULL|INNER) (JOIN)"
+UPDATE_OP = "(UPDATE)"
+SET_OP = "(SET)"
+TO_OP = "(TO)"
 SHOW_OP = "(SHOW ALL)"
 DISPLAY_OP = "(DISPLAY)"
 COND_OP = "(EQUALS|GREATER|LESS|GREATER_EQUAL|LESS_EQUAL)"
@@ -45,12 +48,13 @@ create_view_stmt = CREATE_OP+" "+DB_OBJ_VIEW+" "+NAME+" "+NAME+" "+NAME
 insert_tab_stmt = INSERT_OP+" "+INTO_OP+" "+NAME+" ("+ENTRY+" )*"+ENTRY
 select_tab_stmt = SELECT_OP+" ("+NAME+" )*"+FROM_OP+" "+NAME+"( "+WHERE_OP+" "+NAME+" "+COND_OP+" "+NAME+")*"
 delete_stmt = DELETE_OP+" "+FROM_OP+" "+NAME+" "+WHERE_OP+" "+NAME+" "+COND_OP+" "+NAME
+update_stmt = UPDATE_OP+" "+DB_OBJ_TABLE+" "+NAME+" "+SET_OP+" "+NAME+" "+TO_OP+" "+NAME+"( "+WHERE_OP+" "+NAME+" "+COND_OP+" "+NAME+")*"
 join_stmt = JOIN_OP+" "+NAME+" "+NAME+" "+NAME
 dump_stmt = DUMP_OP+" "+SDB_FILENAME
 
 stmt = "("+call_stmt+"|"+db_obj_stmt+"|"+show_obj_stmt+"|"+create_tab_stmt+\
        "|"+create_view_stmt+"|"+insert_tab_stmt+"|"+select_tab_stmt+"|"+join_stmt+\
-       "|"+delete_stmt+"|"+dump_stmt+")(;)"
+       "|"+delete_stmt+"|"+update_stmt+"|"+dump_stmt+")(;)"
 
 
 SELECT_QUERY_ID_NUM = 0
@@ -105,6 +109,10 @@ class ASTSelectTabStmt(ASTNode):
 class ASTDeleteStmt(ASTNode):
     def accept(self,visitor):
         visitor.visitDeleteStmt(self)
+
+class ASTUpdateStmt(ASTNode):
+    def accept(self,visitor):
+        visitor.visitUpdateStmt(self)
 
 class ASTJoinStmt(ASTNode):
     def accept(self,visitor):
@@ -177,6 +185,7 @@ class Visitor:
         insert_tab_stmt_matcher = re.match(insert_tab_stmt,stmt_input)
         select_tab_stmt_matcher = re.match(select_tab_stmt,stmt_input)
         delete_stmt_matcher = re.match(delete_stmt,stmt_input)
+        update_stmt_matcher = re.match(update_stmt,stmt_input)
         join_stmt_matcher = re.match(join_stmt,stmt_input)
         dump_stmt_matcher = re.match(dump_stmt,stmt_input)
         exit_matcher = re.match(EXIT,stmt_input)
@@ -195,6 +204,8 @@ class Visitor:
             ASTSelectTabStmt(node).accept(self)
         elif not delete_stmt_matcher is None:
             ASTDeleteStmt(node).accept(self)
+        elif not update_stmt_matcher is None:
+            ASTUpdateStmt(node).accept(self)
         elif not join_stmt_matcher is None:
             ASTJoinStmt(node).accept(self)
         elif not show_stmt_matcher is None:
@@ -343,6 +354,8 @@ class Visitor:
             param2 = int(param2)
         elif self.db.getTableHeadingType(tab_name,param1) == float:
             param2 = float(param2)
+        elif self.db.getTableHeadingType(tab_name,param1) == long:
+            param2 = long(param2)
         
         if cond == "EQUALS":
             condition = lambda x: x[attr1] == param2
@@ -356,7 +369,42 @@ class Visitor:
             condition = lambda x: x[attr1] <= param2
 
         self.db.delete_query(tab_name,condition)
+
+
+    def visitUpdateStmt(self,node):
+        exp = node.getExp()
+        tab_name,col,val = exp[2],exp[4],exp[6]
+        if self.db.getTableHeadingType(tab_name,col) == int:
+            val = int(val)
+        elif self.db.getTableHeadingType(tab_name,col) == float:
+            val = float(val)
+        elif self.db.getTableHeadingType(tab_name,col) == long:
+            val = long(val)
+
+        condition = None
         
+        if not exp[7:] == []:
+            param1,cond = exp[8],exp[9]
+            param2 = reduce(lambda x,y: x+" "+y,exp[10:])
+            attr1 = self.db.getAttr(tab_name,param1)
+            if self.db.getTableHeadingType(tab_name,param1) == int:
+                param2 = int(param2)
+            elif self.db.getTableHeadingType(tab_name,param1) == float:
+                param2 = float(param2)
+            elif self.db.getTableHeadingType(tab_name,param1) == long:
+                param2 = long(param2)
+            if cond == "EQUALS":
+                condition = lambda x: x[attr1] == param2
+            elif cond == "GREATER":
+                condition = lambda x: x[attr1] > param2
+            elif cond == "LESS":
+                condition = lambda x: x[attr1] < param2
+            elif cond == "GREATER_EQUAL":
+                condition = lambda x: x[attr1] >= param2
+            elif cond == "LESS_EQUAL":
+                condition = lambda x: x[attr1] <= param2
+
+        self.db.update_query(tab_name,col,val,condition)
         
 
     def visitDBObjStmt(self,node):
